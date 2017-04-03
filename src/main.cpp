@@ -53,7 +53,7 @@ grid getMaze(string fileName, location &start, location &end) {
   mazeFile.open(fileName);
   string line;
   grid mazeVec;
-  int row;
+  int row = 0;
   if(mazeFile.is_open()) {
     while(getline(mazeFile, line)) {
       vector<location> tempVec;
