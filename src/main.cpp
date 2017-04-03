@@ -17,15 +17,12 @@ struct location {
     bool operator ==(const location& other) {
         return x == other.x && y == other.y;
     }
+
 };
 
 struct path {
     vector<location> locations;
     int cost;
-
-    bool operator<(const path& other) {
-        return cost < other.cost;
-    }
 };
 
 using grid = vector<vector<location>>;
@@ -34,11 +31,21 @@ string getFileName();
 grid getMaze(string fileName, location &start, location &end);
 path dijkstras(grid g, location start, location end);
 
+bool operator<(const path& one, const path& two) {
+        return one.cost > two.cost;
+}
+
+ostream& operator <<(ostream& o, const location& l) {
+                o << l.x << ", " << l.y;
+                                    return o;
+}
+
 int main() {
   string filename = getFileName();
   location start, end;
   grid maze = getMaze(filename, start, end);
   path soln = dijkstras(maze, start, end);
+  cout << "Soln cost: " << soln.cost << endl;
 }
 
 string getFileName() {
@@ -53,7 +60,7 @@ grid getMaze(string fileName, location &start, location &end) {
   mazeFile.open(fileName);
   string line;
   grid mazeVec;
-  int row;
+  int row = 0;
   if(mazeFile.is_open()) {
     while(getline(mazeFile, line)) {
       vector<location> tempVec;
@@ -62,7 +69,7 @@ grid getMaze(string fileName, location &start, location &end) {
         current.x = col;
         current.y = row;
         current.ch = line.at(col);
-        current.visited = false;
+        current.visited = current.ch == 'S' ? true : false;
         tempVec.push_back(current);
         if(current.ch == 'S') start = current;
         if(current.ch == 'G') end = current;
@@ -75,11 +82,9 @@ grid getMaze(string fileName, location &start, location &end) {
   return mazeVec;
 }
 
-bool operator<(const path& one, const path& two) {
-    return one.cost < two.cost;
-}
-
 path dijkstras(grid g, location start, location end) {
+    cout << "Start: " << start << endl;
+    cout << "End: " << end << endl;
     priority_queue<path> paths;
     path first_path = {{start}, 0};
     paths.push(first_path);
@@ -90,13 +95,17 @@ path dijkstras(grid g, location start, location end) {
         paths.pop();
         location end_of_curr = curr_path.locations[curr_path.locations.size() - 1];
         end_of_curr.visited = true;
+        g[end_of_curr.y][end_of_curr.x] = end_of_curr;
+
+//        cout << "Exploring location: " << end_of_curr.x << ", " << end_of_curr.y << endl;
 
         if (end_of_curr == end) {
             cout << "Path found" << endl;
+            return curr_path;
         }
 
         vector<location> neighbors = get_neighbors(g, end_of_curr);
-        for (location neighbor : neighbors) {
+        for (location& neighbor : neighbors) {
             if (!neighbor.visited && neighbor.ch != '#') {
                 char neighbor_ch = neighbor.ch;
                 int cost = 1;
@@ -105,6 +114,7 @@ path dijkstras(grid g, location start, location end) {
                 copy.locations.push_back(neighbor);
                 copy.cost += cost;
                 paths.push(copy);
+//                cout << "Enqueued " << neighbor << " with cost " << copy.cost << endl;
             }
         }
     }
