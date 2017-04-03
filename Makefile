@@ -1,15 +1,15 @@
 CC=g++
-LDFLAGS=  -L/usr/local/opt/curl/lib
-CPPFLAGS= -Wall -std=c++11 -Icurlcpp/include -I/usr/local/opt/curl/include -I/usr/local/include -D_GLIBCXX_USE_CXX11_ABI=1
+LDFLAGS= 
+CPPFLAGS= -Wall -std=c++11 
 
 SOURCEDIR=src
 BUILDDIR=build
 
-EXECUTABLE= streaming
+EXECUTABLE= dangerous-maze 
 SOURCES=$(wildcard $(SOURCEDIR)/*.cpp)
 OBJECTS=$(patsubst $(SOURCEDIR)/%.cpp,$(BUILDDIR)/%.o,$(SOURCES))
 
-LINKS= -lcurl  -loauth -lboost_date_time -lmysqlcppconn
+LINKS= 
 
 all: dir $(EXECUTABLE)
 
