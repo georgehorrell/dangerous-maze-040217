@@ -1,4 +1,5 @@
 #include <vector>
+#include <string.h>
 #include <iostream>
 #include <queue>
 #include <set>
@@ -27,10 +28,10 @@ struct path {
 };
 
 using grid = vector<vector<location>>;
+
 vector<location> get_neighbors(grid& g, location& loc);
-string getFileName();
 grid getMaze(string fileName, location &start, location &end);
-path dijkstras(grid g, location start, location end);
+path dijkstras(grid g, location start, location end, bool debug);
 void printSolution(grid maze, path& soln);
 void printGrid(const grid& maze);
 
@@ -43,18 +44,25 @@ ostream& operator <<(ostream& o, const location& l) {
                                     return o;
 }
 
-int main() {
-  string filename = getFileName();
+int main(int argc, char* argv[]) {
+  bool debug = false;
+  if(argc < 2) {
+    cout << "Not enough arguments." << endl;
+    return 0;
+  } else if (argc > 2 && !strcmp(argv[2], "-debug")) {
+    debug = true;
+  }
   location start, end;
+  string filename = argv[1];
   grid maze = getMaze(filename, start, end);
-  path soln = dijkstras(maze, start, end);
+  path soln = dijkstras(maze, start, end, debug);
   printSolution(maze, soln);
   cout << "Solution cost: " << soln.cost << endl;
 }
 
 void printSolution(grid maze, path& soln) {
     if (soln.locations.empty()) return;
-    for (int i = 1; i < soln.locations.size() - 1; i++) {
+    for (unsigned i = 1; i < soln.locations.size() - 1; i++) {
         location temp = soln.locations[i];
         temp.ch = '*';
         maze[temp.y][temp.x] = temp;
@@ -63,26 +71,19 @@ void printSolution(grid maze, path& soln) {
 }
 
 void printGrid(const grid& maze) {
-    for (int r = 0; r < maze.size(); r++) {
-        for (int c = 0; c < maze[r].size(); c++) {
+    for (unsigned r = 0; r < maze.size(); r++) {
+        for (unsigned c = 0; c < maze[r].size(); c++) {
             cout << maze[r][c].ch;
         }
         cout << endl;
     }
 }
 
-string getFileName() {
-  string filename;
-  cout << "Please enter the maze you would like to solve: ";
-  cin >> filename;
-  return filename;
-}
-
 grid getMaze(string fileName, location &start, location &end) {
   ifstream mazeFile;
   mazeFile.open(fileName);
   string line;
-  grid mazeVec;
+  grid mazeGrid;
   int row = 0;
   if(mazeFile.is_open()) {
     while(getline(mazeFile, line)) {
@@ -97,23 +98,23 @@ grid getMaze(string fileName, location &start, location &end) {
         if(current.ch == 'S') start = current;
         if(current.ch == 'G') end = current;
       }
-      mazeVec.push_back(tempVec);
+      mazeGrid.push_back(tempVec);
       row++;
     }
   }
   mazeFile.close();
-  return mazeVec;
+  return mazeGrid;
 }
 
 void clearScreen() {
-    cout << string(100, '\n');
+    cout << string(200, '\n');
 }
 
 int heuristic(location current, location end) {
-    return abs(end.x - current.x) + abs(end.y - current.y);   
+    return abs(end.x - current.x) + abs(end.y - current.y);
 }
 
-path dijkstras(grid g, location start, location end) {
+path dijkstras(grid g, location start, location end, bool debug) {
     cout << "Start: " << start << endl;
     cout << "End: " << end << endl;
     priority_queue<path> paths;
@@ -128,10 +129,12 @@ path dijkstras(grid g, location start, location end) {
         curr_path.cost -= heuristic(end_of_curr, end);
         end_of_curr.visited = true;
         g[end_of_curr.y][end_of_curr.x] = end_of_curr;
-        clearScreen();
-        printSolution(g, curr_path);
-        usleep(10000);
-//        cout << "Exploring location: " << end_of_curr.x << ", " << end_of_curr.y << endl;
+	
+	if(debug) {
+          clearScreen();
+          printSolution(g, curr_path);
+          usleep(10000);
+	}
 
         if (end_of_curr == end) {
             cout << "Path found" << endl;
@@ -148,7 +151,6 @@ path dijkstras(grid g, location start, location end) {
                 copy.locations.push_back(neighbor);
                 copy.cost += cost;
                 paths.push(copy);
-//                cout << "Enqueued " << neighbor << " with cost " << copy.cost << endl;
             }
         }
     }
@@ -159,8 +161,8 @@ path dijkstras(grid g, location start, location end) {
 vector<location> get_neighbors(grid& g, location& loc) {
     vector<location> neighbors;
     if (loc.x != 0) neighbors.push_back(g[loc.y][loc.x - 1]);
-    if (loc.x != g[0].size() - 1) neighbors.push_back(g[loc.y][loc.x + 1]);
+    if (loc.x != (int)(g[0].size() - 1)) neighbors.push_back(g[loc.y][loc.x + 1]);
     if (loc.y != 0) neighbors.push_back(g[loc.y - 1][loc.x]);
-    if (loc.y != g.size() - 1) neighbors.push_back(g[loc.y + 1][loc.x]);
+    if (loc.y != (int)(g.size() - 1)) neighbors.push_back(g[loc.y + 1][loc.x]);
     return neighbors;
 }
