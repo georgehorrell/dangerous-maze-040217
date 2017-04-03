@@ -1,11 +1,13 @@
 #include <vector>
+#include <iostream>
 
-typdef location {
+using namespace std;
+
+struct location {
     int x;
     int y;
 };
 
-using namespace std;
 using path = vector<location>;
 
 int main() {
