@@ -10,7 +10,7 @@ vector<vector<char>> getMaze(string fileName);
 int main() {
   string filename = getFileName();
   vector<vector<char>> dimensions = getMaze(filename);
-  
+  location myLoc;
 }
 
 string getFileName() {
